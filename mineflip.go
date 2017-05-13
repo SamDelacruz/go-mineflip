@@ -15,6 +15,8 @@ func main() {
 		log.Fatal("$PORT env variable must be set")
 	}
 
+	// Each request/connection handled in a new goroutine
+	go hub.Run()
 	http.HandleFunc("/ws", hub.HandleWebsocket)
 	log.Println(http.ListenAndServe(":"+port, nil))
 }
