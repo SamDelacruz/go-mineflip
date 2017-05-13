@@ -47,6 +47,7 @@ func (c *client) readPump() {
 			break
 		}
 
-		h.receive <- message{c, string(m)}
+		// game: "" feels like a hack
+		h.receive <- message{client: c, content: string(m), game: ""}
 	}
 }

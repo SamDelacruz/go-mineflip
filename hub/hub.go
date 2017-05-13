@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -10,6 +9,7 @@ import (
 
 type message struct {
 	client  *client
+	game    string
 	content string
 }
 
@@ -17,7 +17,7 @@ type hub struct {
 	clients        map[*client]map[string]bool
 	games          map[string]map[*client]bool
 	receive        chan message
-	broadcast      chan broadcast
+	broadcast      chan message
 	subscription   chan subscription
 	unsubscription chan *client
 	upgrader       websocket.Upgrader
@@ -28,17 +28,12 @@ type subscription struct {
 	game   string
 }
 
-type broadcast struct {
-	game    string
-	message message
-}
-
 var (
 	h = hub{
 		clients:        make(map[*client]map[string]bool),
 		games:          make(map[string]map[*client]bool),
 		receive:        make(chan message),
-		broadcast:      make(chan broadcast),
+		broadcast:      make(chan message),
 		subscription:   make(chan subscription),
 		unsubscription: make(chan *client),
 		upgrader: websocket.Upgrader{
@@ -57,8 +52,8 @@ func Run() {
 			h.subscribe(sub.client, sub.game)
 		case unsub := <-h.unsubscription:
 			h.unsubscribe(unsub)
-		case broadcast := <-h.broadcast:
-			h.broadcastToGame(broadcast.game, broadcast.message)
+		case m := <-h.broadcast:
+			h.broadcastToGame(m.game, m.content)
 		case m := <-h.receive:
 			go h.handle(m)
 		}
@@ -98,21 +93,15 @@ func (h *hub) unsubscribe(c *client) error {
 	return nil
 }
 
-func (h *hub) broadcastToGame(g string, m message) {
+func (h *hub) broadcastToGame(g string, m string) {
 	for c := range h.games[g] {
-		data, err := json.Marshal(m)
-		if err != nil {
-			fmt.Printf("Error: %s", err)
-			return
-		}
 		select {
-		case c.send <- data:
+		case c.send <- []byte(m):
 			break
 		// Client unreachable?
 		default:
 			h.unsubscribe(c)
 		}
-		c.send <- data
 	}
 }
 
