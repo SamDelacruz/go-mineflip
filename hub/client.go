@@ -1,6 +1,10 @@
 package hub
 
-import "github.com/gorilla/websocket"
+import (
+	"time"
+
+	"github.com/gorilla/websocket"
+)
 
 type client struct {
 	ws   *websocket.Conn
@@ -33,11 +37,11 @@ func (c *client) write(mt int, message []byte) error {
 	return c.ws.WriteMessage(mt, message)
 }
 
-func (c *client) readPump() {
+func (c *client) readPump(unsub chan *client, receive chan message) {
 	defer func() {
 		var s struct{}
 		c.exit <- s
-		h.unsubscription <- c
+		unsub <- c
 		c.ws.Close()
 	}()
 
@@ -47,7 +51,6 @@ func (c *client) readPump() {
 			break
 		}
 
-		// game: "" feels like a hack
-		h.receive <- message{client: c, content: string(m), game: ""}
+		receive <- message{client: c, content: m, timestamp: time.Now()}
 	}
 }

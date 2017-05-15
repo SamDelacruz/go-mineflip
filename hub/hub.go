@@ -3,18 +3,22 @@ package hub
 import (
 	"fmt"
 	"net/http"
+	"time"
+
+	"encoding/json"
 
 	"github.com/gorilla/websocket"
 )
 
 type message struct {
-	client  *client
-	game    string
-	content string
+	client    *client
+	timestamp time.Time
+	game      *string
+	content   []byte
 }
 
 type hub struct {
-	clients        map[*client]map[string]bool
+	clients        map[*client]string
 	games          map[string]map[*client]bool
 	receive        chan message
 	broadcast      chan message
@@ -30,7 +34,7 @@ type subscription struct {
 
 var (
 	h = hub{
-		clients:        make(map[*client]map[string]bool),
+		clients:        make(map[*client]string),
 		games:          make(map[string]map[*client]bool),
 		receive:        make(chan message),
 		broadcast:      make(chan message),
@@ -53,54 +57,83 @@ func Run() {
 		case unsub := <-h.unsubscription:
 			h.unsubscribe(unsub)
 		case m := <-h.broadcast:
-			h.broadcastToGame(m.game, m.content)
+			if m.game != nil {
+				h.broadcastToGame(*m.game, m.content)
+			}
 		case m := <-h.receive:
-			go h.handle(m)
+			h.handle(&m)
 		}
 	}
 }
 
-func (h *hub) handle(m message) {
-	fmt.Printf("Handling m: %s\n", m)
+func (h *hub) handle(m *message) {
+	var f interface{}
+
+	err := json.Unmarshal(m.content, &f)
+
+	if err != nil {
+		fmt.Printf("%s: Error decoding json: %s\n", m.timestamp, err)
+		return
+	}
+
+	msg := f.(map[string]interface{})
+
+	switch msg["action"] {
+	case "SUBSCRIBE":
+		switch msg["game"].(type) {
+		case string:
+			g := msg["game"].(string)
+			go func() {
+				h.subscription <- subscription{client: m.client, game: g}
+			}()
+		}
+	default:
+		fmt.Printf("%s: Unknown action requested: %s\n", m.timestamp, msg["action"])
+	}
 }
 
 func (h *hub) subscribe(c *client, g string) error {
-	_, ok := h.clients[c]
-	if !ok {
-		h.clients[c] = map[string]bool{}
-	}
-	h.clients[c][g] = true
+	h.clients[c] = g
 
-	_, ok = h.games[g]
+	_, ok := h.games[g]
 	if !ok {
 		h.games[g] = map[*client]bool{}
 	}
 	h.games[g][c] = true
 
+	fmt.Println("Subscribe client to game: " + g)
+
+	go func() {
+		h.broadcast <- message{
+			client:    c,
+			content:   []byte(fmt.Sprintf("You are now playing %s\n", g)),
+			game:      &g,
+			timestamp: time.Now(),
+		}
+	}()
+
 	return nil
 }
 
 func (h *hub) unsubscribe(c *client) error {
-	for g := range h.clients[c] {
-		delete(h.games[g], c)
-		if len(h.games[g]) == 0 {
-			delete(h.games, g)
-		}
+	g := h.clients[c]
+	delete(h.games[g], c)
+	if len(h.games[g]) == 0 {
+		delete(h.games, g)
 	}
-
 	delete(h.clients, c)
 
 	return nil
 }
 
-func (h *hub) broadcastToGame(g string, m string) {
+func (h *hub) broadcastToGame(g string, m []byte) {
 	for c := range h.games[g] {
 		select {
-		case c.send <- []byte(m):
+		case c.send <- m:
 			break
 		// Client unreachable?
 		default:
-			h.unsubscribe(c)
+			h.unsubscription <- c
 		}
 	}
 }
@@ -120,6 +153,6 @@ func HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := client{ws: ws, send: make(chan []byte), exit: make(chan struct{})}
-	go client.readPump()
+	go client.readPump(h.unsubscription, h.receive)
 	go client.writePump()
 }
