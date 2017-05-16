@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 // Game stores the current state of a game
 // All properties can be derived from this struct
 // i.e score, win/lose, visible tiles, hints
@@ -9,24 +11,63 @@ type Game struct {
 	Moves []int
 }
 
+// GameRepr is the public derived state of a game
+type GameRepr struct {
+	ID    string       `json:"id"`
+	Board [5][5]string `json:"board"`
+	Score int          `json:"score"`
+	Hints Hints        `json:"hints"`
+	Won   bool         `json:"game_won"`
+	Lost  bool         `json:"game_lost"`
+}
+
+// ToRepr returns the public derived state of a game
+func (g *Game) ToRepr() GameRepr {
+	var repr GameRepr
+	repr.ID = g.ID
+	repr.Score = g.GetScore()
+	repr.Hints = g.GetHints()
+	repr.Board = unsquashBoard(g.GetVisible())
+	repr.Won = g.Won()
+	repr.Lost = g.Lost()
+	return repr
+}
+
 // Hint stores the hint metadata for a row/column
 // Mines is the number of mines/zeroes in a row/column
 // Points is the sum of a row/column
 type Hint struct {
-	Mines  int
-	Points int
+	Mines  int `json:"mines"`
+	Points int `json:"points"`
 }
 
 // Hints is the collection type for grouping hints
 // by rows and columns
 type Hints struct {
-	Rows [5]Hint
-	Cols [5]Hint
+	Rows [5]Hint `json:"rows"`
+	Cols [5]Hint `json:"cols"`
+}
+
+// ToJSON returns the json representation of a Game
+func (g *Game) ToJSON() ([]byte, error) {
+	return json.Marshal(g.ToRepr())
+}
+
+func unsquashBoard(b string) [5][5]string {
+	var s [5][5]string
+	bb := []byte(b)
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 5; j++ {
+			s[j][i] = string(bb[j*5+i])
+		}
+	}
+	return s
 }
 
 // GetVisible gets the string representation of a gameboard
 // Unrevealed tiles represented as '?'
 // Revealed tiles represented by their points value
+// Mines (0) represented by "*"
 func (g *Game) GetVisible() string {
 	v := []byte{
 		'?', '?', '?', '?', '?',
@@ -37,9 +78,16 @@ func (g *Game) GetVisible() string {
 	}
 
 	for _, m := range g.Moves {
-		v[m] = g.Board[m] + 48 // ASCII numeric offset - fine for 0-9
+		v[m] = byteToTile(g.Board[m])
 	}
 	return string(v)
+}
+
+func byteToTile(b byte) byte {
+	if b == 0 {
+		return '*'
+	} // Mine is a *
+	return b + 48 // ASCII numeric offset - fine for 0-9
 }
 
 // GetScore returns the current score for a game
@@ -103,4 +151,12 @@ func (g *Game) getRowHint(row int) Hint {
 		p += int(v)
 	}
 	return Hint{m, p}
+}
+
+func (g *Game) Lost() bool {
+	return len(g.Moves) > 0 && g.GetScore() == 0
+}
+
+func (g *Game) Won() bool {
+	return g.GetScore() == g.GetMaxScore()
 }

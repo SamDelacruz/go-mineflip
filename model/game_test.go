@@ -73,6 +73,23 @@ func TestGame_GetVisibleRevealed(t *testing.T) {
 	}
 }
 
+func TestGame_GetVisibleMines(t *testing.T) {
+	g := model.Game{ID: "1", Board: [25]byte{
+		0, 3, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 2,
+	}, Moves: []int{0, 24}}
+
+	want := "*???????????????????????2"
+	got := g.GetVisible()
+
+	if want != got {
+		t.Error("expected", want, "got", got)
+	}
+}
+
 func TestGame_GetHintsBasic(t *testing.T) {
 	g := model.Game{ID: "1", Board: [25]byte{
 		1, 1, 1, 1, 1,
@@ -190,6 +207,60 @@ func TestGame_GetMaxScoreGeneral(t *testing.T) {
 
 	want := 96
 	got := g.GetMaxScore()
+
+	if want != got {
+		t.Error("expected", want, "got", got)
+	}
+}
+
+func TestGame_ToJSON(t *testing.T) {
+	g := model.Game{ID: "1", Board: [25]byte{
+		0, 3, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 2,
+	}, Moves: []int{10, 24}}
+
+	want := `{"id":"1","board":[["?","?","?","?","?"],["?","?","?","?","?"],["1","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","2"]],"score":2,"hints":{"rows":[{"mines":1,"points":6},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}],"cols":[{"mines":1,"points":4},{"mines":0,"points":7},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}]},"game_won":false,"game_lost":false}`
+	j, _ := g.ToJSON()
+	got := string(j)
+
+	if want != got {
+		t.Error("expected", want, "got", got)
+	}
+}
+
+func TestGame_ToJSONLose(t *testing.T) {
+	g := model.Game{ID: "1", Board: [25]byte{
+		0, 3, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 2,
+	}, Moves: []int{0, 24}}
+
+	want := `{"id":"1","board":[["*","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","2"]],"score":0,"hints":{"rows":[{"mines":1,"points":6},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}],"cols":[{"mines":1,"points":4},{"mines":0,"points":7},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}]},"game_won":false,"game_lost":true}`
+	j, _ := g.ToJSON()
+	got := string(j)
+
+	if want != got {
+		t.Error("expected", want, "got", got)
+	}
+}
+
+func TestGame_ToJSONWin(t *testing.T) {
+	g := model.Game{ID: "1", Board: [25]byte{
+		0, 3, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1,
+	}, Moves: []int{1, 24}}
+
+	want := `{"id":"1","board":[["?","3","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","1"]],"score":3,"hints":{"rows":[{"mines":1,"points":6},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5}],"cols":[{"mines":1,"points":4},{"mines":0,"points":7},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5}]},"game_won":true,"game_lost":false}`
+	j, _ := g.ToJSON()
+	got := string(j)
 
 	if want != got {
 		t.Error("expected", want, "got", got)
