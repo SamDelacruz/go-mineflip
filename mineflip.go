@@ -24,6 +24,7 @@ func main() {
 	r.HandleFunc("/ws", hub.HandleWebsocket)
 	r.HandleFunc("/games", api.CreateGameHandler).Methods("POST")
 	r.HandleFunc("/games/{id}", api.GetGameHandler).Methods("GET")
+	r.HandleFunc("/games/{id}/tiles/{x}/{y}", api.MoveHandler).Methods("GET")
 	http.Handle("/", r)
 	log.Println(http.ListenAndServe(":"+port, nil))
 }
