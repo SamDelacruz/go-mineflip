@@ -82,7 +82,7 @@ func TestGame_GetVisibleMines(t *testing.T) {
 		1, 1, 1, 1, 2,
 	}, Moves: []int{0, 24}}
 
-	want := "*???????????????????????2"
+	want := "*311111111111111111111112"
 	got := g.GetVisible()
 
 	if want != got {
@@ -240,7 +240,7 @@ func TestGame_ToJSONLose(t *testing.T) {
 		1, 1, 1, 1, 2,
 	}, Moves: []int{0, 24}}
 
-	want := `{"id":"1","board":[["*","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","?"],["?","?","?","?","2"]],"score":0,"hints":{"rows":[{"mines":1,"points":6},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}],"cols":[{"mines":1,"points":4},{"mines":0,"points":7},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}]},"game_won":false,"game_lost":true}`
+	want := `{"id":"1","board":[["*","3","1","1","1"],["1","1","1","1","1"],["1","1","1","1","1"],["1","1","1","1","1"],["1","1","1","1","2"]],"score":0,"hints":{"rows":[{"mines":1,"points":6},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}],"cols":[{"mines":1,"points":4},{"mines":0,"points":7},{"mines":0,"points":5},{"mines":0,"points":5},{"mines":0,"points":6}]},"game_won":false,"game_lost":true}`
 	j, _ := g.ToJSON()
 	got := string(j)
 
