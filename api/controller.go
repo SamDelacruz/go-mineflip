@@ -49,7 +49,9 @@ func MoveHandler(w http.ResponseWriter, r *http.Request) {
 
 		i := y*5 + x
 		g.AddMove(i)
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusOK)
+		data, _ := g.ToJSON()
+		w.Write(data)
 		return
 	}
 	http.NotFound(w, r)
