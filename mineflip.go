@@ -23,8 +23,8 @@ func main() {
 	r.StrictSlash(true) // Redirect trailing slashes
 	r.HandleFunc("/ws", hub.HandleWebsocket)
 	r.HandleFunc("/games", api.CreateGameHandler).Methods("POST")
-	r.HandleFunc("/games/{id}", api.GetGameHandler).Methods("GET")
-	r.HandleFunc("/games/{id}/tiles/{x}/{y}", api.MoveHandler).Methods("GET")
+	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}", api.GetGameHandler).Methods("GET")
+	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}/tiles/{x:[0-4]}/{y:[0-4]}", api.MoveHandler).Methods("GET")
 	http.Handle("/", r)
 	log.Println(http.ListenAndServe(":"+port, nil))
 }
