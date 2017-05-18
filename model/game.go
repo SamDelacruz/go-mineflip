@@ -1,6 +1,9 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 // Game stores the current state of a game
 // All properties can be derived from this struct
@@ -159,4 +162,21 @@ func (g *Game) Lost() bool {
 
 func (g *Game) Won() bool {
 	return g.GetScore() == g.GetMaxScore()
+}
+
+func (g *Game) AddMove(i int) (byte, error) {
+	if g.moveAvail(i) {
+		g.Moves = append(g.Moves, i)
+		return g.Board[i], nil
+	}
+	return 0, errors.New("INVALID_MOVE")
+}
+
+func (g *Game) moveAvail(i int) bool {
+	for _, m := range g.Moves {
+		if m == i {
+			return false
+		}
+	}
+	return true
 }

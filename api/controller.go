@@ -8,12 +8,12 @@ import (
 	"strconv"
 )
 
-var games = make(map[string]model.Game)
+var games = make(map[string]*model.Game)
 
 func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := randutil.AlphaString(5)
 	g := model.Game{ID: id, Board: model.GenBoard()}
-	games[id] = g
+	games[id] = &g
 	data, _ := g.ToJSON()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
@@ -48,26 +48,14 @@ func MoveHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		i := y*5 + x
-		if moveAvail(i, g) {
-			newGame := model.Game{ID: g.ID, Moves: append(g.Moves, i), Board: g.Board}
-			games[g.ID] = newGame
-		}
+		g.AddMove(i)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	http.NotFound(w, r)
 }
 
-func moveAvail(i int, g model.Game) bool {
-	for _, m := range g.Moves {
-		if m == i {
-			return false
-		}
-	}
-	return true
-}
-
-func getGame(r *http.Request) (model.Game, bool) {
+func getGame(r *http.Request) (*model.Game, bool) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	g, ok := games[id]
