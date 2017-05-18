@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/samdelacruz/go-mineflip/api"
 	"github.com/samdelacruz/go-mineflip/hub"
@@ -26,5 +27,5 @@ func main() {
 	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}", api.GetGameHandler).Methods("GET")
 	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}/tiles/{x:[0-4]}/{y:[0-4]}", api.MoveHandler).Methods("GET")
 	http.Handle("/", r)
-	log.Println(http.ListenAndServe(":"+port, nil))
+	log.Println(http.ListenAndServe(":"+port, handlers.CORS()(r)))
 }
