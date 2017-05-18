@@ -80,8 +80,14 @@ func (g *Game) GetVisible() string {
 		'?', '?', '?', '?', '?',
 	}
 
-	for _, m := range g.Moves {
-		v[m] = byteToTile(g.Board[m])
+	if g.Lost() {
+		for i, t := range g.Board {
+			v[i] = byteToTile(t)
+		}
+	} else {
+		for _, m := range g.Moves {
+			v[m] = byteToTile(g.Board[m])
+		}
 	}
 	return string(v)
 }
