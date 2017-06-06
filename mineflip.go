@@ -27,5 +27,9 @@ func main() {
 	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}", api.GetGameHandler).Methods("GET")
 	r.HandleFunc("/games/{id:[a-zA-Z0-9]+}/tiles/{x:[0-4]}/{y:[0-4]}", api.MoveHandler).Methods("GET")
 	http.Handle("/", r)
-	log.Println(http.ListenAndServe(":"+port, handlers.CORS()(r)))
+
+	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type", "X-Requested-With", "Authorization"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+	log.Println(http.ListenAndServe(":"+port, handlers.CORS(allowedHeaders, allowedMethods, allowedOrigins)(r)))
 }

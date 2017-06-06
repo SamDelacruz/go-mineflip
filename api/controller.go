@@ -1,11 +1,13 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/jmcvetta/randutil"
-	"github.com/samdelacruz/go-mineflip/model"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/jmcvetta/randutil"
+	"github.com/samdelacruz/go-mineflip/leaderboard"
+	"github.com/samdelacruz/go-mineflip/model"
 )
 
 var games = make(map[string]*model.Game)
@@ -33,6 +35,13 @@ func GetGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func MoveHandler(w http.ResponseWriter, r *http.Request) {
 	if g, ok := getGame(r); ok {
+		// Early return if game has finished
+		if g.Won() || g.Lost() {
+			w.WriteHeader(http.StatusOK)
+			data, _ := g.ToJSON()
+			w.Write(data)
+			return
+		}
 		vars := mux.Vars(r)
 
 		x, err := strconv.Atoi(vars["x"])
@@ -49,6 +58,19 @@ func MoveHandler(w http.ResponseWriter, r *http.Request) {
 
 		i := y*5 + x
 		g.AddMove(i)
+		if g.Won() {
+			// Post the score to player's leaderboard
+			go func() {
+				token := parseJWT(r)
+				if token != nil {
+					userID := token["sub"].(string)
+					givenName := token["given_name"].(string)
+					if len(userID) > 0 && len(givenName) > 0 {
+						leaderboard.Post(userID, givenName, g.GetScore())
+					}
+				}
+			}()
+		}
 		w.WriteHeader(http.StatusOK)
 		data, _ := g.ToJSON()
 		w.Write(data)
