@@ -14,7 +14,7 @@ var games = make(map[string]*model.Game)
 
 func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := randutil.AlphaString(5)
-	g := model.Game{ID: id, Board: model.GenBoard()}
+	g := model.Game{ID: id, Board: model.GenBoardForLevel(1)}
 	games[id] = &g
 	data, _ := g.ToJSON()
 	w.Header().Set("Content-Type", "application/json")
