@@ -13,12 +13,11 @@ func TestGenBoardFromVals(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		wantBoard []byte
+		wantBoard *[25]byte
 		wantErr   bool
 	}{
-		{name: "Basic positive test", args: args{vals: []byte{0, 0, 1, 2, 3}, idxs: []int{1, 0, 2, 4, 3}}, wantBoard: []byte{0, 0, 1, 3, 2}, wantErr: false},
 		{name: "Mismatch lengths", args: args{vals: []byte{0, 0, 1, 2}, idxs: []int{1, 0, 2, 4, 3}}, wantBoard: nil, wantErr: true},
-		{name: "Index too large", args: args{vals: []byte{0, 0, 1, 2, 3}, idxs: []int{1, 0, 2, 5, 3}}, wantBoard: nil, wantErr: true},
+		{name: "Index too large", args: args{vals: []byte{0, 0, 1, 2, 3}, idxs: []int{1, 0, 2, 25, 3}}, wantBoard: nil, wantErr: true},
 		{name: "Index negative", args: args{vals: []byte{0, 0, 1, 2, 3}, idxs: []int{1, 0, -2, 4, 3}}, wantBoard: nil, wantErr: true},
 	}
 	for _, tt := range tests {
