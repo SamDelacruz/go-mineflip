@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 )
 
 type message struct {
@@ -72,7 +73,7 @@ func (h *hub) handle(m *message) {
 	err := json.Unmarshal(m.content, &f)
 
 	if err != nil {
-		fmt.Printf("%s: Error decoding json: %s\n", m.timestamp, err)
+		log.WithField("Error", err).Error("[HUB] Error decoding json")
 		return
 	}
 
@@ -88,7 +89,7 @@ func (h *hub) handle(m *message) {
 			}()
 		}
 	default:
-		fmt.Printf("%s: Unknown action requested: %s\n", m.timestamp, msg["action"])
+		log.WithField("Action", msg["action"]).Warn("[HUB] Unknown action requested")
 	}
 }
 
@@ -101,7 +102,10 @@ func (h *hub) subscribe(c *client, g string) error {
 	}
 	h.games[g][c] = true
 
-	fmt.Println("Subscribe client to game: " + g)
+	log.WithFields(log.Fields{
+		"game":   g,
+		"client": c,
+	}).Info("[HUB] Subscribing client to game")
 
 	go func() {
 		h.broadcast <- message{
