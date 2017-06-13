@@ -8,18 +8,27 @@
 			"Rev": "b5e8610828c057e3df94ee1c2be99475befae99d"
 		},
 		{
+			"ImportPath": "github.com/gin-gonic/gin",
+			"Comment": "v1.1.4-1-gd5b353c",
+			"Rev": "d5b353c5d5a560322e6d96121c814115562501f7"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/binding",
+			"Comment": "v1.1.4-1-gd5b353c",
+			"Rev": "d5b353c5d5a560322e6d96121c814115562501f7"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/gin/render",
+			"Comment": "v1.1.4-1-gd5b353c",
+			"Rev": "d5b353c5d5a560322e6d96121c814115562501f7"
+		},
+		{
 			"ImportPath": "github.com/go-errors/errors",
 			"Rev": "8fa88b06e5974e97fbf9899a7f86a344bfd1f105"
 		},
 		{
-			"ImportPath": "github.com/gorilla/handlers",
-			"Comment": "v1.2-4-g13d7309",
-			"Rev": "13d73096a474cac93275c679c7b8a2dc17ddba82"
-		},
-		{
-			"ImportPath": "github.com/gorilla/mux",
-			"Comment": "v1.3.0-6-g4c1c395",
-			"Rev": "4c1c3952b7d9d0a061a3fa7b36fd373ba0398ebc"
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "9f174c986221c608fb5143bd623b6076a71feae3"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
@@ -29,6 +38,38 @@
 		{
 			"ImportPath": "github.com/jmcvetta/randutil",
 			"Rev": "2bb1b664bcff821e02b2a0644cd29c7e824d54f8"
+		},
+		{
+			"ImportPath": "github.com/manucorporat/sse",
+			"Rev": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Comment": "v0.0.2",
+			"Rev": "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v1.0.0-1-g85b1699",
+			"Rev": "85b1699d505667d13f8ac4478c1debbf85d6c5de"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "513929065c19401a1c7b76ecd942f9f86a0c061b"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "b90f89a1e7a9c1f6b918820b3daa7f08488c8594"
+		},
+		{
+			"ImportPath": "gopkg.in/gin-contrib/cors.v1",
+			"Comment": "v1.2",
+			"Rev": "cf4846e6a636a76237a28d9286f163c132e841bc"
+		},
+		{
+			"ImportPath": "gopkg.in/go-playground/validator.v8",
+			"Comment": "v8.18.1",
+			"Rev": "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
 		},
 		{
 			"ImportPath": "gopkg.in/square/go-jose.v2",
@@ -49,6 +90,10 @@
 			"ImportPath": "gopkg.in/square/go-jose.v2/jwt",
 			"Comment": "v2.1.1",
 			"Rev": "af13e1fbc7ac2df7f7eab54e5177104d546d0e9c"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
 		}
 	]
 }

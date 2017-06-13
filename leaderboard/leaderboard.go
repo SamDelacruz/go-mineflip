@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Post(userID string, name string, score int) {
@@ -19,7 +21,14 @@ func Post(userID string, name string, score int) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		fields := log.Fields{
+			"err":    err,
+			"userID": userID,
+			"name":   name,
+			"score":  score,
+		}
+		log.WithFields(fields).Error("Error posting score")
+		return
 	}
 	defer resp.Body.Close()
 

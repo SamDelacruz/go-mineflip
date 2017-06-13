@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/jmcvetta/randutil"
 	"github.com/samdelacruz/go-mineflip/leaderboard"
 	"github.com/samdelacruz/go-mineflip/model"
@@ -12,47 +12,40 @@ import (
 
 var games = make(map[string]*model.Game)
 
-func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
+func CreateGameHandler(c *gin.Context) {
 	id, _ := randutil.AlphaString(5)
 	g := model.Game{ID: id, Board: model.GenBoardForLevel(1)}
 	games[id] = &g
-	data, _ := g.ToJSON()
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
-	w.Write(data)
+	c.JSON(http.StatusCreated, g.ToRepr())
 }
 
-func GetGameHandler(w http.ResponseWriter, r *http.Request) {
-	if g, ok := getGame(r); ok {
-		data, _ := g.ToJSON()
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(data)
+func GetGameHandler(c *gin.Context) {
+	if g, ok := getGame(c); ok {
+		c.JSON(http.StatusOK, g.ToRepr())
 		return
 	}
-	http.NotFound(w, r)
+	c.AbortWithStatus(http.StatusNotFound)
 }
 
-func MoveHandler(w http.ResponseWriter, r *http.Request) {
-	if g, ok := getGame(r); ok {
+func MoveHandler(c *gin.Context) {
+	if g, ok := getGame(c); ok {
 		// Early return if game has finished
 		if g.Won() || g.Lost() {
-			w.WriteHeader(http.StatusOK)
-			data, _ := g.ToJSON()
-			w.Write(data)
+			c.JSON(http.StatusOK, g.ToRepr())
 			return
 		}
-		vars := mux.Vars(r)
+		xStr := c.Param("x")
+		yStr := c.Param("y")
 
-		x, err := strconv.Atoi(vars["x"])
+		x, err := strconv.Atoi(xStr)
 		if err != nil || x > 4 || x < 0 {
-			w.WriteHeader(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		y, err := strconv.Atoi(vars["y"])
+		y, err := strconv.Atoi(yStr)
 
 		if err != nil || y > 4 || y < 0 {
-			w.WriteHeader(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
 
@@ -61,7 +54,7 @@ func MoveHandler(w http.ResponseWriter, r *http.Request) {
 		if g.Won() {
 			// Post the score to player's leaderboard
 			go func() {
-				token := parseJWT(r)
+				token := parseJWT(c.Request)
 				if token != nil {
 					userID := token["sub"].(string)
 					givenName := token["given_name"].(string)
@@ -71,17 +64,14 @@ func MoveHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}()
 		}
-		w.WriteHeader(http.StatusOK)
-		data, _ := g.ToJSON()
-		w.Write(data)
+		c.JSON(http.StatusOK, g.ToRepr())
 		return
 	}
-	http.NotFound(w, r)
+	c.AbortWithStatus(http.StatusNotFound)
 }
 
-func getGame(r *http.Request) (*model.Game, bool) {
-	vars := mux.Vars(r)
-	id := vars["id"]
+func getGame(c *gin.Context) (*model.Game, bool) {
+	id := c.Param("id")
 	g, ok := games[id]
 	return g, ok
 }
