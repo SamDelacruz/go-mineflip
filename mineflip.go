@@ -31,6 +31,8 @@ func main() {
 
 	r.Use(cors.New(config))
 
+	r.Use(api.UserInfoMiddleware())
+
 	r.GET("/ws", func(c *gin.Context) {
 		hub.HandleWebsocket(c.Writer, c.Request)
 	})

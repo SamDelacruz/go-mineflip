@@ -54,13 +54,10 @@ func MoveHandler(c *gin.Context) {
 		if g.Won() {
 			// Post the score to player's leaderboard
 			go func() {
-				token := parseJWT(c.Request)
-				if token != nil {
-					userID := token["sub"].(string)
-					givenName := token["given_name"].(string)
-					if len(userID) > 0 && len(givenName) > 0 {
-						leaderboard.Post(userID, givenName, g.GetScore())
-					}
+				u, exists := c.Get("user")
+				if exists {
+					user := u.(User)
+					leaderboard.Post(user.ID, user.Name, g.GetScore())
 				}
 			}()
 		}
